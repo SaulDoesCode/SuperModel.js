@@ -162,7 +162,7 @@ listmap is just an abstraction
 using a Map containing Sets.  
 This is used for the event loop
 ```js
-  const lm = model.listMap()
+  const lm = SuperModel.listMap()
   lm.del(key, val)
   lm.set(key, val)
   lm.get(key) // -> Set([val])
