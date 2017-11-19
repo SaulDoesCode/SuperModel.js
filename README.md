@@ -1,4 +1,5 @@
-## SuperModel.js - Harness the power of proxies!
+# 👯 SuperModel.js 👯
+## Harness the power of proxies!
 
 * +: no depencies
 * +: small size
