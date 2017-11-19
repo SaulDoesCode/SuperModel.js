@@ -19,6 +19,7 @@
     }
   }) => lm
 
+  // simple global variable but you could export here
   var SuperModel = (store = new Map()) => {
     const listeners = listMap()
 
@@ -92,6 +93,8 @@
         emit('set:' + key, val)
         return mut
       }
+      emit('get', key)
+      emit('get:' + key)
       return oldval
     }
 
@@ -104,7 +107,6 @@
       if (store.has(key)) obj[key] = store.get(key)
       return obj
     }
-    sync.node = (node, prop, key = 'textContent') => sync(node, key, prop)
     sync.stop = (obj, prop) => {
       if (syncs.has(obj)) {
         const syncedProps = syncs.get(obj)
@@ -123,7 +125,10 @@
     }, {
       get: (_, key) => new Promise(resolve => {
         store.has(key) ? resolve(store.get(key)) : once('set:' + key, resolve)
-      })
+      }),
+      set(_, key, val) {
+        val.then(mut.bind(null, key))
+      }
     })
 
     return new Proxy(
@@ -135,9 +140,10 @@
             return mut(key)
           },
           set (_, key, val) {
-            if (val && val.constructor === Promise) return val.then(mut.bind(null, key))
+            if (val && val.constructor === Promise) return Async[key] = val
             return mut(key, val)
-          }
+          },
+          delete: (_, key) => del(key)
         }
     )
   }
