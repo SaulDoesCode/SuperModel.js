@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Data Binding Using SuperModel.js</title>
+    <style media="screen">
+      @import url('https://fonts.googleapis.com/css?family=Nunito:400');
+
+      * {
+        box-sizing: border-box;
+        margin: none;
+        outline: none;
+      }
+
+      body {
+        font-family: 'Nunito', 'Roboto', sans-serif;
+        text-align: center;
+        color: hsl(45,50%,50%);
+        text-shadow: 0 1px 2px hsla(0,0%,10%,.2);
+      }
+
+      aside, main, main > * {
+        position: relative;
+        display: inline-block;
+        vertical-align: top;
+        text-align: left;
+        margin: 10px auto;
+        width: 60%;
+        font-size: 1.1em;
+      }
+      main > * {
+        box-shadow: 0 2px 46px hsla(0,0%,15%,.16);
+        border: 1px solid hsl(41,25%,58%);
+        padding: 8px;
+        width: 46%;
+        margin: 1%;
+        min-height: 50px;
+        border-radius: 2px;
+      }
+      aside {
+        overflow: hidden;
+        border-radius: 2px;
+        background: hsl(0,0%,95%);
+        color: hsl(0, 0%, 38%);
+        max-width: 540px;
+      }
+    </style>
+    <script src="../SuperModel.js"></script>
+  </head>
+  <body>
+    <h1>SuperModel.js Data Binding</h1>
+    <main>
+      <textarea id=txtarea>type something...</textarea>
+      <article id=txtdisplay></article>
+    </main>
+
+    <script type="text/javascript">
+      const model = SuperModel()
+      const txtarea = document.querySelector('#txtarea')
+      const txtdisplay = document.querySelector('#txtdisplay')
+      model.sync(txtdisplay, 'innerText', 'txt')
+
+      model.txt = txtarea.value.trim()
+      txtarea.addEventListener('input', e => {
+        model.txt = txtarea.value.trim()
+      })
+    </script>
+    <br>
+    <aside>
+
+<pre><code>  // two simple elements
+  // 1 - textarea id="txtarea"
+  // 2 - article  id="txtdisplay"
+
+  const model = SuperModel()
+  const txtarea = document.querySelector('#txtarea')
+  const txtdisplay = document.querySelector('#txtdisplay')
+  model.sync(txtdisplay, 'innerText', 'txt')
+
+  model.txt = txtarea.value.trim()
+  txtarea.addEventListener('input', e => {
+    model.txt = txtarea.value.trim()
+  })
+</code></pre>
+
+    </aside>
+  </body>
+</html>
