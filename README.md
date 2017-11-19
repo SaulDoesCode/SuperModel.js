@@ -2,7 +2,7 @@
 ## Harness the power of proxies!
 
 * +: no depencies
-* +: small size
+* +: small size, SuperModel.min.js is less than 2kb uncompressed
 * -: only newer browsers supported
 
 ### API
