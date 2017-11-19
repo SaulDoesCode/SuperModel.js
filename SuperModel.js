@@ -81,9 +81,11 @@
       emit('delete:' + key)
     }
 
+    const has = key => store.has(key)
+
     const mut = (key, val) => {
       if (key && key.constructor === Object) {
-        for (let key in key) mut(k, key[k])
+        for (let k in key) mut(k, key[k])
         return mut
       }
       const oldval = store.get(key)
@@ -132,7 +134,7 @@
     })
 
     return new Proxy(
-      Object.assign(mut, {emit, emitAsync, listen, on, once, store, sync, syncs, del}),
+      Object.assign(mut, {emit, emitAsync, listen, on, once, has, store, sync, syncs, del}),
         {
           get (o, key) {
             if (Reflect.has(o, key)) return Reflect.get(o, key)
