@@ -5,7 +5,39 @@
 * +: small size
 * -: only newer browsers supported
 
+### API
+* ``SuperModel( store = new Map() )`` - create a model
+* ``.listen( justonce, type, func )``- event listener with option to listen once or not
+* ``.on( type, func )``, ``.once( type, func )``- model event listener
+* ``.on[type]( func )``, ``.once[type]( func )``- event listener, type as function property
+* ``.emit( type, ...values )``- emit an event with values
+* ``.emit[type]( ...values )``- emit, event type as a function property
+* ``.emitAsync( type, ...values )``- emit an event with values (non-blocking)
+* ``model.del( key )``- delete model property
+* ``model( key, =val )``- shorthand function based property get/set
+* ``model( {...props} )``- update properties with an object
+* ``model[prop]``- get/set model property
+* ``model.async[prop]``- get/set model property using promises
+* ``.sync( obj, key, modelProperty = key )``- set and update a model property on an object
+* ``.sync.stop( obj, key )``- stop syncing a model property on an object
+* ``.listMap``- internal abstraction using a Map containing Sets
+
 ### Learn By Example
+
+#### Async/Await Values
+
+```js
+  // view.js
+  const model = SuperModel()
+  feed.render(await model.async.news)
+
+  // news.js
+  model.news = await (await fetch('/latest')).json()
+
+  // psst... it also works if you simply assign a promise as is
+  model.news = (await fetch('/latest')).json()
+```
+
 
 #### Data Binding
 
@@ -24,20 +56,6 @@
   txtarea.addEventListener('input', e => {
     model.txt = txtarea.value.trim()
   })
-```
-
-#### Async/Await Values
-
-```js
-  // view.js
-  const model = SuperModel()
-  feed.render(await model.async.news)
-
-  // news.js
-  model.news = await (await fetch('/latest')).json()
-
-  // psst... it also works if you simply assign a promise as is
-  model.news = (await fetch('/latest')).json()
 ```
 
 #### Emit Events
