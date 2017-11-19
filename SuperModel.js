@@ -110,7 +110,7 @@
       return obj
     }
     sync.stop = (obj, prop) => {
-      if (syncs.has(obj)) {
+      if (has(obj)) {
         const syncedProps = syncs.get(obj)
         if (!prop) syncedProps.forEach(ln => ln.off()).clear()
         else if (syncedProps.has(prop)) {
@@ -123,10 +123,10 @@
     }
 
     const Async = new Proxy((key, fn) => {
-      store.has(key) ? fn(store.get(key)) : once('set:'+key, fn)
+      has(key) ? fn(store.get(key)) : once('set:'+key, fn)
     }, {
       get: (_, key) => new Promise(resolve => {
-        store.has(key) ? resolve(store.get(key)) : once('set:' + key, resolve)
+        has(key) ? resolve(store.get(key)) : once('set:' + key, resolve)
       }),
       set(_, key, val) {
         val.then(mut.bind(null, key))

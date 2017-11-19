@@ -20,6 +20,8 @@
 * ``model.async[prop]``- get/set model property using promises
 * ``.sync( obj, key, modelProperty = key )``- set and update a model property on an object
 * ``.sync.stop( obj, key )``- stop syncing a model property on an object
+* ``.store``- Map containing all model properties
+* ``.has( key )``- checks whether model.store has a certain key
 * ``.listMap``- internal abstraction using a Map containing Sets
 
 ### Learn By Example
