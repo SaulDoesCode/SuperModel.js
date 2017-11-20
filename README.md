@@ -6,14 +6,14 @@
 * -: only newer browsers supported
 
 ### API
-* ``SuperModel( store = new Map() )`` - create a model
+* ``SuperModel( data = {}, store = new Map() )`` - create a new model
 * ``.listen( justonce, type, func )``- event listener with option to listen once or not
 * ``.on( type, func )``, ``.once( type, func )``- model event listener
 * ``.on[type]( func )``, ``.once[type]( func )``- event listener, type as function property
 * ``.emit( type, ...values )``- emit an event with values
 * ``.emit[type]( ...values )``- emit, event type as a function property
 * ``.emitAsync( type, ...values )``- emit an event with values (non-blocking)
-* ``model.del( key )``- delete model property
+* ``.del( key )``- delete model property
 * ``model( key, =val )``- shorthand function based property get/set
 * ``model( {...props} )``- update properties with an object
 * ``model[prop]``- get/set model property
@@ -22,7 +22,9 @@
 * ``.sync.stop( obj, key )``- stop syncing a model property on an object
 * ``.store``- Map containing all model properties
 * ``.has( key )``- checks whether model.store has a certain key
-* ``.listMap``- internal abstraction using a Map containing Sets
+* ``.runAsync( func, ...args )``- runs a function (with its args) inside a promise
+* ``.listMap()``- internal abstraction using a Map containing Sets
+* ``.emitter()``- just the event emitting part of the model
 
 ### Learn By Example
 

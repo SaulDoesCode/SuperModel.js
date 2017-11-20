@@ -19,8 +19,29 @@
     }
   }) => lm
 
-  // simple global variable but you could export here
-  var SuperModel = (store = new Map()) => {
+  const infinifyFN = (fn, reflect = true) => new Proxy(fn, {
+    get (_, key) {
+      if (reflect && Reflect.has(fn, key)) return Reflect.get(fn, key)
+      return fn.bind(null, key)
+    }
+  })
+
+  const runAsync = (fn, ...args) => new Promise((resolve, reject) => {
+    try {
+      resolve(fn(...args))
+    } catch (e) {
+      reject(e)
+    }
+  })
+
+  const mergeObjs = (host, ...objs) => {
+    objs.forEach(obj => {
+      host = Object.assign(host, obj)
+    })
+    return host
+  }
+
+  const emitter = () => {
     const listeners = listMap()
 
     const armln = (name, fn) => {
@@ -35,13 +56,6 @@
       }
       return fn
     }
-
-    const infinifyFN = (fn, reflect = true) => new Proxy(fn, {
-      get (_, key) {
-        if (reflect && Reflect.has(fn, key)) return Reflect.get(fn, key)
-        return fn.bind(null, key)
-      }
-    })
 
     const on = infinifyFN((name, fn) => {
       listeners.set(name, fn)
@@ -60,20 +74,21 @@
     const listen = (justonce, name, fn) => (justonce ? once : on)(name, fn)
 
     const emit = infinifyFN((name, ...vals) => {
-      listeners.each(name, ln => {
-        ln(...vals)
-      })
+      listeners.each(name, ln => ln(...vals))
     }, false)
 
     const emitAsync = infinifyFN((name, ...vals) => {
-      setTimeout(() => {
-        listeners.each(name, ln => {
-          setTimeout(() => {
-            ln(...vals)
-          }, 0)
-        })
-      }, 0)
+      runAsync(listeners.each, name, ln => runAsync(ln, ...vals))
     }, false)
+
+    return {emit,emitAsync,on,once,listen}
+  }
+
+  // simple global variable but you could export here
+  var SuperModel = (data = {}, store = new Map()) => {
+
+    const mitter = emitter()
+    const {emit,emitAsync,on,once,listen} = mitter
 
     const del = key => {
       store.delete(key)
@@ -99,6 +114,8 @@
       emit('get:' + key)
       return oldval
     }
+    // merge data into the store Map (or Map-like) object
+    mut(data)
 
     const syncs = new Map()
     const sync = (obj, key, prop = key) => {
@@ -134,7 +151,7 @@
     })
 
     return new Proxy(
-      Object.assign(mut, {emit, emitAsync, listen, on, once, has, store, sync, syncs, del}),
+        mergeObjs(mut, {has, store, sync, syncs, del}, mitter),
         {
           get (o, key) {
             if (Reflect.has(o, key)) return Reflect.get(o, key)
@@ -150,5 +167,7 @@
     )
   }
 
+  SuperModel.runAsync = runAsync
   SuperModel.listMap = listMap
+  SuperModel.emitter = emitter
 }
