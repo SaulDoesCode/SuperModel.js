@@ -2,7 +2,7 @@
 ## Harness the power of proxies!
 
 * +: no depencies
-* +: small size, SuperModel.min.js is less than 2kb uncompressed
+* +: small size, SuperModel.min.js is less than 3kb uncompressed
 * -: only newer browsers supported
 
 ### API
@@ -18,6 +18,8 @@
 * ``model( {...props} )``- update properties with an object
 * ``model[prop]``- get/set model property
 * ``model.async[prop]``- get/set model property using promises
+* ``model.valid(key, =validator)``- make a property validate-able by adding a validator func/RegExp
+* ``model.valid[prop]``- set - prop validator func/RegExp, get - run validator and get bool result
 * ``.sync( obj, key, modelProperty = key )``- set and update a model property on an object
 * ``.sync.stop( obj, key )``- stop syncing a model property on an object
 * ``.store``- Map containing all model properties
@@ -61,6 +63,38 @@
     model.txt = txtarea.value.trim()
   })
 ```
+
+#### Validate Properties
+
+```js
+  const model = SuperModel()
+  model.valid.username = /^[a-zA-Z0-9._]{3,55}$/g
+  model.username = '**Bad Username**'
+  model.valid.username // -> false
+  model.valid('username') // -> false
+
+
+  model.ui = {...someUIcomponent}
+
+  model.valid.ui = ui => !ui.hidden && ui.userlist.includes(model.username)
+  // or
+  model.valid('ui', ui => !ui.hidden && ui.userlist.includes(model.username))
+
+  model.valid.ui // -> bool
+
+
+  // listen for validation event
+  model.on('validate:username', isValid => {
+    // ...
+  })
+  // or
+  model.on.validate((propName, isValid) => {
+    if (propName === 'username') {
+      // ...
+    }
+  })
+```
+
 
 #### Emit Events
 

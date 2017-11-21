@@ -1,8 +1,14 @@
 {
-  const listMap = (store = new Map(), lm = {
+  const funcConstruct = obj => (...args) => new obj(...args)
+  const $map = funcConstruct(Map)
+  const $set = funcConstruct(Set)
+  const $proxy = funcConstruct(Proxy)
+  const $promise = funcConstruct(Promise)
+
+  const listMap = (store = $map(), lm = {
     get: name => store.get(name),
     set (name, val) {
-      (store.has(name) ? store : store.set(name, new Set())).get(name).add(val)
+      (store.has(name) ? store : store.set(name, $set())).get(name).add(val)
       return lm
     },
     del (name, val) {
@@ -19,14 +25,14 @@
     }
   }) => lm
 
-  const infinifyFN = (fn, reflect = true) => new Proxy(fn, {
+  const infinifyFN = (fn, reflect = true) => $proxy(fn, {
     get (_, key) {
       if (reflect && Reflect.has(fn, key)) return Reflect.get(fn, key)
       return fn.bind(null, key)
     }
   })
 
-  const runAsync = (fn, ...args) => new Promise((resolve, reject) => {
+  const runAsync = (fn, ...args) => $promise((resolve, reject) => {
     try {
       resolve(fn(...args))
     } catch (e) {
@@ -85,7 +91,7 @@
   }
 
   // simple global variable but you could export here
-  var SuperModel = (data = {}, store = new Map()) => {
+  var SuperModel = (data = {}, store = $map()) => {
 
     const mitter = emitter()
     const {emit,emitAsync,on,once,listen} = mitter
@@ -98,7 +104,7 @@
 
     const has = key => store.has(key)
 
-    const mut = (key, val) => {
+    const mut = (key, val, silent) => {
       if (key && key.constructor === Object) {
         for (let k in key) mut(k, key[k])
         return mut
@@ -106,20 +112,24 @@
       const oldval = store.get(key)
       if (val !== undefined && val !== oldval) {
         store.set(key, val)
-        emit('set', key, val)
-        emit('set:' + key, val)
+        if (!silent) {
+          emit('set', key, val)
+          emit('set:' + key, val)
+        }
         return mut
       }
-      emit('get', key)
-      emit('get:' + key)
+      if (!silent) {
+        emit('get', key)
+        emit('get:' + key)
+      }
       return oldval
     }
     // merge data into the store Map (or Map-like) object
     mut(data)
 
-    const syncs = new Map()
+    const syncs = $map()
     const sync = (obj, key, prop = key) => {
-      if (!syncs.has(obj)) syncs.set(obj, new Map())
+      if (!syncs.has(obj)) syncs.set(obj, $map())
       syncs.get(obj).set(prop, on('set:' + prop, val => {
         obj[key] = val
       }))
@@ -139,10 +149,10 @@
       return obj
     }
 
-    const Async = new Proxy((key, fn) => {
+    const Async = $proxy((key, fn) => {
       has(key) ? fn(store.get(key)) : once('set:'+key, fn)
     }, {
-      get: (_, key) => new Promise(resolve => {
+      get: (_, key) => $promise(resolve => {
         has(key) ? resolve(store.get(key)) : once('set:' + key, resolve)
       }),
       set(_, key, val) {
@@ -150,12 +160,35 @@
       }
     })
 
-    return new Proxy(
+    const validators = $map()
+    const validateProp = key => {
+      const valid = store.has(key) && validators.has(key) && validators.get(key)(store.get(key))
+      emitAsync('validate:'+key, valid)
+      emitAsync('validate', key, valid)
+      return valid
+    }
+
+    const Validation = $proxy((key, validator) => {
+      if (validator === undefined) return validateProp(key)
+      if(validator instanceof RegExp) {
+        const regexp = validator
+        validator = val => typeof val === 'string' && regexp.test(val)
+      }
+      if (validator instanceof Function) {
+        validators.set(key, validator)
+      }
+    }, {
+      get: (_, key) => validateProp(key),
+      set: (vd, key, val) => vd(key, val)
+    })
+
+    return $proxy(
         mergeObjs(mut, {has, store, sync, syncs, del}, mitter),
         {
           get (o, key) {
             if (Reflect.has(o, key)) return Reflect.get(o, key)
             if (key === 'async') return Async
+            else if (key === 'valid') return Validation
             return mut(key)
           },
           set (_, key, val) {
