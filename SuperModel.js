@@ -1,4 +1,6 @@
 {
+  const isObj = o => o && o.constructor === Object
+
   const funcConstruct = obj => (...args) => new obj(...args)
   const $map = funcConstruct(Map)
   const $set = funcConstruct(Set)
@@ -63,12 +65,20 @@
       return fn
     }
 
+    const listenMulti = (obj, fn) => {
+      for (let key in obj) {
+        obj[key] = fn(obj[key])
+      }
+    }
+
     const on = infinifyFN((name, fn) => {
+      if (isObj(name)) return listenMulti(name, on)
       listeners.set(name, fn)
       return armln(name, fn)
     })
 
     const once = infinifyFN((name, fn) => {
+      if (isObj(name)) return listenMulti(name, once)
       const ln = (...vals) => {
         listeners.del(name, ln)
         return fn(...vals)
@@ -105,7 +115,7 @@
     const has = key => store.has(key)
 
     const mut = (key, val, silent) => {
-      if (key && key.constructor === Object) {
+      if (isObj(key)) {
         for (let k in key) mut(k, key[k])
         return mut
       }
