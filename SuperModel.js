@@ -100,6 +100,11 @@
     return {emit,emitAsync,on,once,listen}
   }
 
+  const map2json = (map, obj = {}) => {
+    map.forEach((val, key) => obj[key] = val)
+    return JSON.stringify(obj)
+  }
+
   // simple global variable but you could export here
   var SuperModel = (data = {}, store = $map()) => {
 
@@ -116,7 +121,7 @@
 
     const mut = (key, val, silent) => {
       if (isObj(key)) {
-        for (let k in key) mut(k, key[k])
+        for (let k in key) mut(k, key[k], val)
         return mut
       }
       const oldval = store.get(key)
@@ -143,7 +148,7 @@
       syncs.get(obj).set(prop, on('set:' + prop, val => {
         obj[key] = val
       }))
-      if (store.has(key)) obj[key] = store.get(key)
+      if (has(prop)) obj[key] = store.get(prop)
       return obj
     }
     sync.stop = (obj, prop) => {
@@ -192,8 +197,10 @@
       set: (vd, key, val) => vd(key, val)
     })
 
+    const toJSON = () => map2json(store)
+
     return $proxy(
-        mergeObjs(mut, {has, store, sync, syncs, del}, mitter),
+        mergeObjs(mut, {has, store, sync, syncs, del, toJSON}, mitter),
         {
           get (o, key) {
             if (Reflect.has(o, key)) return Reflect.get(o, key)
