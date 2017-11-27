@@ -1,6 +1,8 @@
 # 👯 SuperModel.js 👯
 ## Harness the power of proxies!
 
+[![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
+
 * +: no depencies
 * +: small size, SuperModel.min.js is less than 3kb uncompressed
 * -: only newer browsers supported

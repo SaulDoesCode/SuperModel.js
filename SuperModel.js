@@ -1,7 +1,7 @@
 {
   const isObj = o => o && o.constructor === Object
 
-  const funcConstruct = obj => (...args) => new obj(...args)
+  const funcConstruct = Obj => (...args) => new Obj(...args)
   const $map = funcConstruct(Map)
   const $set = funcConstruct(Set)
   const $proxy = funcConstruct(Proxy)
@@ -97,19 +97,20 @@
       runAsync(listeners.each, name, ln => runAsync(ln, ...vals))
     }, false)
 
-    return {emit,emitAsync,on,once,listen}
+    return {emit, emitAsync, on, once, listen}
   }
 
   const map2json = (map, obj = {}) => {
-    map.forEach((val, key) => obj[key] = val)
+    map.forEach((val, key) => {
+      obj[key] = val
+    })
     return JSON.stringify(obj)
   }
 
   // simple global variable but you could export here
   var SuperModel = (data = {}, store = $map()) => {
-
     const mitter = emitter()
-    const {emit,emitAsync,on,once,listen} = mitter
+    const {emit, emitAsync, on, once} = mitter
 
     const del = key => {
       store.delete(key)
@@ -165,12 +166,12 @@
     }
 
     const Async = $proxy((key, fn) => {
-      has(key) ? fn(store.get(key)) : once('set:'+key, fn)
+      has(key) ? fn(store.get(key)) : once('set:' + key, fn)
     }, {
       get: (_, key) => $promise(resolve => {
         has(key) ? resolve(store.get(key)) : once('set:' + key, resolve)
       }),
-      set(_, key, val) {
+      set (_, key, val) {
         val.then(mut.bind(null, key))
       }
     })
@@ -178,14 +179,14 @@
     const validators = $map()
     const validateProp = key => {
       const valid = store.has(key) && validators.has(key) && validators.get(key)(store.get(key))
-      emitAsync('validate:'+key, valid)
+      emitAsync('validate:' + key, valid)
       emitAsync('validate', key, valid)
       return valid
     }
 
     const Validation = $proxy((key, validator) => {
       if (validator === undefined) return validateProp(key)
-      if(validator instanceof RegExp) {
+      if (validator instanceof RegExp) {
         const regexp = validator
         validator = val => typeof val === 'string' && regexp.test(val)
       }
@@ -201,19 +202,21 @@
 
     return $proxy(
         mergeObjs(mut, {has, store, sync, syncs, del, toJSON}, mitter),
-        {
-          get (o, key) {
-            if (Reflect.has(o, key)) return Reflect.get(o, key)
-            if (key === 'async') return Async
-            else if (key === 'valid') return Validation
-            return mut(key)
-          },
-          set (_, key, val) {
-            if (val && val.constructor === Promise) return Async[key] = val
-            return mut(key, val)
-          },
-          delete: (_, key) => del(key)
-        }
+      {
+        get (o, key) {
+          if (Reflect.has(o, key)) return Reflect.get(o, key)
+          if (key === 'async') return Async
+          else if (key === 'valid') return Validation
+          return mut(key)
+        },
+        set (_, key, val) {
+          if (val && val.constructor === Promise) {
+            return (Async[key] = val)
+          }
+          return mut(key, val)
+        },
+        delete: (_, key) => del(key)
+      }
     )
   }
 
