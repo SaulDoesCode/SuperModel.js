@@ -22,7 +22,8 @@
 * ``model.valid[prop]``- set - prop validator func/RegExp, get - run validator and get bool result
 * ``.sync( obj, key, modelProperty = key )``- set and update a model property on an object
 * ``.sync.stop( obj, key )``- stop syncing a model property on an object
-* ``.store``- Map containing all model properties
+* ``.store()``- Map containing all model properties
+* ``.toJSON()`` - Get all model.store properties as JSON
 * ``.has( key )``- checks whether model.store has a certain key
 * ``.runAsync( func, ...args )``- runs a function (with its args) inside a promise
 * ``.listMap()``- internal abstraction using a Map containing Sets
