@@ -1,5 +1,5 @@
 # 👯 SuperModel.js 👯
-## Harness the power of proxies!
+### Harness the power of proxies!
 
 [![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
 
