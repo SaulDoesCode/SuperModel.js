@@ -1,4 +1,5 @@
 {
+  const isDef = o => o !== undefined
   const isObj = o => o && o.constructor === Object
 
   const funcConstruct = Obj => (...args) => new Obj(...args)
@@ -7,25 +8,22 @@
   const $proxy = funcConstruct(Proxy)
   const $promise = funcConstruct(Promise)
 
-  const listMap = (store = $map(), lm = {
-    get: name => store.get(name),
-    set (name, val) {
-      (store.has(name) ? store : store.set(name, $set())).get(name).add(val)
-      return lm
-    },
-    del (name, val) {
-      if (store.has(name) && store.get(name).delete(val).size < 1) store.delete(name)
-      return lm
-    },
-    has (name, val) {
-      const nameExists = store.has(name)
-      return val === undefined || !nameExists ? nameExists : store.get(name).has(val)
-    },
-    each (name, fn) {
-      if (lm.has(name)) store.get(name).forEach(fn)
-      return lm
+  const listMap = (map = $map()) => Object.assign(
+    (key, val) => (
+      isDef(val) ? (map.has(key) ? map : map.set(key, $set())).get(key).add(val) : map.get(key)
+    ),
+    {
+      map,
+      del (key, val) {
+        map.has(key) && map.get(key).delete(val).size < 1 && map.delete(key)
+      },
+      has (key, val) {
+        const list = map.get(key)
+        return isDef(val) ? list && list.has(val) : !!list
+      },
+      each (key, fn) { map.has(key) && map.get(key).forEach(fn) }
     }
-  }) => lm
+  )
 
   const infinifyFN = (fn, reflect = true) => $proxy(fn, {
     get (_, key) {
@@ -43,9 +41,7 @@
   })
 
   const mergeObjs = (host, ...objs) => {
-    objs.forEach(obj => {
-      host = Object.assign(host, obj)
-    })
+    objs.forEach(obj => { host = Object.assign(host, obj) })
     return host
   }
 
@@ -65,29 +61,26 @@
       return fn
     }
 
-    const listenMulti = (obj, fn) => {
-      for (let key in obj) {
-        obj[key] = fn(obj[key])
+    const listenMulti = (obj, justonce) => {
+      for (const key in obj) {
+        obj[key] = listen(key, obj[key], justonce)
       }
+      return obj
     }
 
-    const on = infinifyFN((name, fn) => {
-      if (isObj(name)) return listenMulti(name, on)
-      listeners.set(name, fn)
-      return armln(name, fn)
-    })
-
-    const once = infinifyFN((name, fn) => {
-      if (isObj(name)) return listenMulti(name, once)
-      const ln = (...vals) => {
-        listeners.del(name, ln)
-        return fn(...vals)
+    const listen = (name, fn, justonce) => {
+      if (isObj(name)) return listenMulti(name, justonce)
+      function ln () {
+        if (justonce) listeners.del(name, ln)
+        return fn(...arguments)
       }
-      listeners.set(name, ln)
+      // listMap set name fn
+      listeners(name, ln)
       return armln(name, ln)
-    })
+    }
 
-    const listen = (justonce, name, fn) => (justonce ? once : on)(name, fn)
+    const on = infinifyFN(listen)
+    const once = infinifyFN((name, fn) => listen(name, fn, true))
 
     const emit = infinifyFN((name, ...vals) => {
       listeners.each(name, ln => ln(...vals))
@@ -97,13 +90,11 @@
       runAsync(listeners.each, name, ln => runAsync(ln, ...vals))
     }, false)
 
-    return {emit, emitAsync, on, once, listen}
+    return {emit, emitAsync, on, once, listen, listeners}
   }
 
   const map2json = (map, obj = {}) => {
-    map.forEach((val, key) => {
-      obj[key] = val
-    })
+    map.forEach((val, key) => { obj[key] = val })
     return JSON.stringify(obj)
   }
 
@@ -171,9 +162,7 @@
       get: (_, key) => $promise(resolve => {
         has(key) ? resolve(store.get(key)) : once('set:' + key, resolve)
       }),
-      set (_, key, val) {
-        val.then(mut.bind(null, key))
-      }
+      set: (_, key, val) => val.then(v => mut(key, v))
     })
 
     const validators = $map()
@@ -185,7 +174,7 @@
     }
 
     const Validation = $proxy((key, validator) => {
-      if (validator === undefined) return validateProp(key)
+      if (!isDef(validator)) return validateProp(key)
       if (validator instanceof RegExp) {
         const regexp = validator
         validator = val => typeof val === 'string' && regexp.test(val)
@@ -201,7 +190,7 @@
     const toJSON = () => map2json(store)
 
     return $proxy(
-        mergeObjs(mut, {has, store, sync, syncs, del, toJSON}, mitter),
+      mergeObjs(mut, {has, store, sync, syncs, del, toJSON}, mitter),
       {
         get (o, key) {
           if (Reflect.has(o, key)) return Reflect.get(o, key)

@@ -9,25 +9,25 @@
 
 ### API
 * ``SuperModel( data = {}, store = new Map() )`` - create a new model
-* ``.listen( justonce, type, func )``- event listener with option to listen once or not
-* ``.on( type, func )``, ``.once( type, func )``- model event listener
-* ``.on[type]( func )``, ``.once[type]( func )``- event listener, type as function property
-* ``.emit( type, ...values )``- emit an event with values
-* ``.emit[type]( ...values )``- emit, event type as a function property
-* ``.emitAsync( type, ...values )``- emit an event with values (non-blocking)
-* ``.del( key )``- delete model property
-* ``model( key, =val )``- shorthand function based property get/set
-* ``model( {...props} )``- update properties with an object
+* ``.listen(type, func, justonce)``- event listener with option to listen once or not
+* ``.on(type, func)``, ``.once(type, func)``- model event listener
+* ``.on[type](func)``, ``.once[type](func)``- event listener, type as function property
+* ``.emit(type, ...values)``- emit an event with values
+* ``.emit[type](...values)``- emit, event type as a function property
+* ``.emitAsync(type, ...values)``- emit an event with values (non-blocking)
+* ``.del(key)``- delete model property
+* ``model(key, =val)``- shorthand function based property get/set
+* ``model({...props})``- update properties with an object
 * ``model[prop]``- get/set model property
 * ``model.async[prop]``- get/set model property using promises
 * ``model.valid(key, =validator)``- make a property validate-able by adding a validator func/RegExp
 * ``model.valid[prop]``- set - prop validator func/RegExp, get - run validator and get bool result
-* ``.sync( obj, key, modelProperty = key )``- set and update a model property on an object
-* ``.sync.stop( obj, key )``- stop syncing a model property on an object
+* ``.sync(obj, key, modelProperty = key)``- set and update a model property on an object
+* ``.sync.stop(obj, key)``- stop syncing a model property on an object
 * ``.store()``- Map containing all model properties
 * ``.toJSON()`` - Get all model.store properties as JSON
-* ``.has( key )``- checks whether model.store has a certain key
-* ``.runAsync( func, ...args )``- runs a function (with its args) inside a promise
+* ``.has(key)``- checks whether model.store has a certain key
+* ``.runAsync(func, ...args)``- runs a function (with its args) inside a promise
 * ``.listMap()``- internal abstraction using a Map containing Sets
 * ``.emitter()``- just the event emitting part of the model
 
@@ -123,7 +123,10 @@ stop and restart event listeners
   const listener = model.on.happening(() => {})
   listener.off() // no longer listening
   listener.on() // listening again
-  listening.once() // listening just once
+  listener.once() // listening just once
+
+  // bonus, trigger the listener manually
+  listener()
 ```
 
 #### Mutations
@@ -166,9 +169,7 @@ there are 3 mutation types ``set, get, del``
   })
 
   model.existentialism = 'What ever matters to you.'
-
 ```
-
 
 #### other things
 sync model values with other objects   
@@ -176,9 +177,7 @@ sync model values with other objects
 ``.sync.stop(obj, key)``
 ```js
   const model = SuperModel()
-  model({
-    PhilosophyOfTheDay: 'pragmatism'
-  })
+  model({ PhilosophyOfTheDay: 'pragmatism' })
 
   const PHODelement = document.querySelector('#PHOD')
 
@@ -216,18 +215,31 @@ and each event listener in a ``setTimeout(ln, 0)``
 ```
 
 
+**listMap** is just a utility to manage a ``Map`` that contains ``Set``s
+```javascript
+  import dataGun from 'dataGun.mjs'
+  const lm = dataGun.listMap()
 
-listmap is just an abstraction
-using a Map containing Sets.  
-This is used for the event loop
-```js
-  const lm = SuperModel.listMap()
-  lm.del(key, val)
-  lm.set(key, val)
-  lm.get(key) // -> Set([val])
-  lm.has(key) // -> bool Set exists
-  lm.has(key, val) // -> bool Value in Set exists
-  lm.each(key, val => {
-    // loop over values in Set...
+  // set
+  lm('key', 'value0')
+  lm('key', 'value1')
+  // get
+  lm('key') // -> Set{'value0', 'value1'}
+  // get the base map
+  lm.map // -> Map{key: Set{...}}
+  // has
+  lm.has('key') // -> true
+  lm.has('key', 'value2') // -> false
+  // delete a value
+  lm.del('key', 'value0')
+  // or
+  lm('key').delete('value0')
+
+  // loop over contents
+  lm.each('key', value => {
+    console.log(value)
   })
+  // value0
+  // value1
+  // ...
 ```
