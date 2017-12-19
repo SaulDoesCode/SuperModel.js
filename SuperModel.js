@@ -187,12 +187,7 @@
           else if (key === 'valid') return Validation
           return mut(key)
         },
-        set (_, key, val) {
-          if (val && val.constructor === Promise) {
-            return (Async[key] = val)
-          }
-          return mut(key, val)
-        },
+        set: (_, key, val) => val && val.constructor === Promise ? (Async[key] = val) : mut(key, val),
         delete: (_, key) => del(key)
       }
     )
