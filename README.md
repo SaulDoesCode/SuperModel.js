@@ -197,10 +197,12 @@ sync model values with other objects
 for ease of use in special cases
 ```js
   const model = SuperModel()
-  // once = true, on = false
-  model.listen(true, 'nihilism', val => {
-    console.log(val)
-  })
+
+  model.listen(
+    'nihilism',
+    val => console.log(val),
+    true // once = true, on = false
+  )
 
   model.emit.nihilism('nothing has meaning') // logs
   model.emit.nihilism('nothing has meaning') // doesn't log
@@ -217,16 +219,15 @@ and each event listener in a ``setTimeout(ln, 0)``
 
 **listMap** is just a utility to manage a ``Map`` that contains ``Set``s
 ```javascript
-  import dataGun from 'dataGun.mjs'
-  const lm = dataGun.listMap()
+  const lm = SuperModel.listMap()
 
   // set
   lm('key', 'value0')
   lm('key', 'value1')
   // get
-  lm('key') // -> Set{'value0', 'value1'}
+  lm('key') // -> Set['value0', 'value1']
   // get the base map
-  lm.map // -> Map{key: Set{...}}
+  lm.map // -> Map{key: Set[...]}
   // has
   lm.has('key') // -> true
   lm.has('key', 'value2') // -> false

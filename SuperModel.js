@@ -45,52 +45,43 @@
     return host
   }
 
-  const emitter = () => {
+  const emitter = (host = {}) => {
     const listeners = listMap()
-
-    const armln = (name, fn) => {
-      fn.off = () => listeners.del(name, fn)
-      fn.once = () => {
-        fn.off()
-        return once(name, fn)
-      }
-      fn.on = () => {
-        fn.off()
-        return on(name, fn)
-      }
-      return fn
-    }
-
+    // extract listener functions from object and arm them
     const listenMulti = (obj, justonce) => {
-      for (const key in obj) {
-        obj[key] = listen(key, obj[key], justonce)
-      }
+      for (const key in obj) obj[key] = listen(key, obj[key], justonce)
       return obj
     }
-
-    const listen = (name, fn, justonce) => {
+    // arm listener
+    const listen = (name, fn, justonce = false) => {
       if (isObj(name)) return listenMulti(name, justonce)
-      function ln () {
-        if (justonce) listeners.del(name, ln)
-        return fn(...arguments)
+      const ln = (...data) => fn(...data)
+      const setln = state => {
+        listeners.del(name, ln)
+        ln.once = state
+        listeners(name, ln)
+        return ln
       }
-      // listMap set name fn
-      listeners(name, ln)
-      return armln(name, ln)
+      ln.off = () => {
+        listeners.del(name, ln)
+        return ln
+      }
+      ln.on = () => setln(false)
+      ln.once = () => setln(true)
+      return setln(justonce)
     }
 
-    const on = infinifyFN(listen)
+    const on = infinifyFN((name, fn) => listen(name, fn))
     const once = infinifyFN((name, fn) => listen(name, fn, true))
 
-    const emit = infinifyFN((name, ...vals) => {
-      listeners.each(name, ln => ln(...vals))
+    const emit = infinifyFN((name, ...data) => {
+      listeners.each(name, ln => {
+        runAsync(ln, ...data)
+        if (ln.once) ln.off()
+      })
     }, false)
 
-    const emitAsync = infinifyFN((name, ...vals) => {
-      runAsync(listeners.each, name, ln => runAsync(ln, ...vals))
-    }, false)
-
-    return {emit, emitAsync, on, once, listen, listeners}
+    return mergeObjs(host, {emit, on, once, listen, listeners})
   }
 
   const map2json = (map, obj = {}) => {
@@ -101,7 +92,7 @@
   // simple global variable but you could export here
   var SuperModel = (data = {}, store = $map()) => {
     const mitter = emitter()
-    const {emit, emitAsync, on, once} = mitter
+    const {emit, on, once} = mitter
 
     const del = key => {
       store.delete(key)
@@ -117,7 +108,7 @@
         return mut
       }
       const oldval = store.get(key)
-      if (val !== undefined && val !== oldval) {
+      if (isDef(val) && val !== oldval) {
         store.set(key, val)
         if (!silent) {
           emit('set', key, val)
@@ -137,9 +128,7 @@
     const syncs = $map()
     const sync = (obj, key, prop = key) => {
       if (!syncs.has(obj)) syncs.set(obj, $map())
-      syncs.get(obj).set(prop, on('set:' + prop, val => {
-        obj[key] = val
-      }))
+      syncs.get(obj).set(prop, on('set:' + prop, val => { obj[key] = val }))
       if (has(prop)) obj[key] = store.get(prop)
       return obj
     }
@@ -168,8 +157,8 @@
     const validators = $map()
     const validateProp = key => {
       const valid = store.has(key) && validators.has(key) && validators.get(key)(store.get(key))
-      emitAsync('validate:' + key, valid)
-      emitAsync('validate', key, valid)
+      emit('validate:' + key, valid)
+      emit('validate', key, valid)
       return valid
     }
 
