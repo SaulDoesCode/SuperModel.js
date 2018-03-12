@@ -1,7 +1,7 @@
-{ /* global Node NodeList HTMLInputElement HTMLTextAreaElement Text */
+{
   const infinify = (fn, reflect = false) => new Proxy(fn, {
     get: (fn, key) =>
-      (reflect && key in fn && Reflect.get(fn, key)) || fn.bind(undefined, key)
+      typeof key !== 'symbol' && ((reflect && key in fn && Reflect.get(fn, key)) || fn.bind(undefined, key))
   })
 
   const emitter = (host = {}, listeners = new Map()) => Object.assign(host, {
@@ -41,13 +41,21 @@
     })
   })
 
+  const NodeENV = typeof global === 'object'
+  const root = NodeENV ? global : window
+  const antiSemiotics = o => typeof o === 'symbol' ? o.toString() : o
+
+  if (NodeENV) {
+    var Text = class Text { constructor (txt) { this.textContent = txt } }
+  }
+
   const isArr = Array.isArray
   const isDef = o => o !== undefined && o !== null
   const isNil = o => o === undefined || o === null
   const isObj = o => o && o.constructor === Object
   const isStr = o => typeof o === 'string'
-  const isInput = o => o instanceof HTMLInputElement || o instanceof HTMLTextAreaElement
-  const isArrlike = o => isArr(o) || o instanceof NodeList || (isDef(o) && !(o instanceof Function || o instanceof Node) && o.length % 1 === 0)
+  const isInput = o => !NodeENV && (o instanceof root.HTMLInputElement || o instanceof root.HTMLTextAreaElement)
+  const isArrlike = o => isArr(o) || (!NodeENV && o instanceof root.NodeList) || (isDef(o) && !(o instanceof Function || (!NodeENV && o instanceof root.Node)) && o.length % 1 === 0)
   const isPromise = o => typeof o === 'object' && isFunc(o.then)
   const isRegExp = o => o instanceof RegExp
   const isFunc = o => o instanceof Function
@@ -79,7 +87,7 @@
   }
 
   // simple global variable but you could export here
-  var SuperModel = (data, mitter = emitter(), store = new Map()) => {
+  const SuperModel = (data, mitter = emitter(), store = new Map()) => {
     let Model
     const {emit, emitAsync, on, once} = mitter
 
@@ -128,6 +136,8 @@
 
     const syncs = new Map()
     const sync = new Proxy(function (obj, key, prop = key) {
+      key = antiSemiotics(key)
+      prop = antiSemiotics(prop)
       if (isArr(obj)) {
         const args = Array.from(arguments).slice(1)
         if (args.every(isStr)) return sync.template(obj, ...args)
@@ -183,9 +193,8 @@
       return obj
     }, {
       get (fn, prop) {
-        if (Reflect.has(fn, prop)) {
-          return Reflect.get(fn, prop)
-        } else {
+        if (Reflect.has(fn, prop)) return Reflect.get(fn, prop)
+        else {
           return (obj, key) => {
             if (isNil(obj)) return sync.text(prop)
             if (isNil(key)) key = prop
@@ -211,7 +220,7 @@
 
     sync.text = new Proxy(
       prop => sync(new Text(), 'textContent', prop),
-      {get: (fn, prop) => fn(prop)}
+      {get: (fn, prop) => fn(antiSemiotics(prop))}
     )
 
     sync.template = (strings, ...keys) => flatten(
@@ -225,6 +234,7 @@
 
     const Async = new Proxy((key, fn) => has(key) ? fn(store.get(key)) : once('set:' + key, fn), {
       get: (_, key) => new Promise(resolve => {
+        key = antiSemiotics(key)
         has(key) ? resolve(store.get(key)) : once('set:' + key, resolve)
       }),
       set: (_, key, val) => val.then(mut.bind(undefined, key))
@@ -232,6 +242,7 @@
 
     const validators = new Map()
     const validateProp = key => {
+      key = antiSemiotics(key)
       const valid = store.has(key) && validators.has(key) && validators.get(key)(store.get(key))
       emit('validate:' + key, valid)
       emit('validate', key, valid)
@@ -240,6 +251,7 @@
 
     const Validation = new Proxy((key, validator) => {
       if (isNil(validator)) return validateProp(key)
+      key = antiSemiotics(key)
       if (isRegExp(validator)) {
         const regexp = validator
         validator = val => isStr(val) && regexp.test(val)
@@ -252,11 +264,12 @@
       }
     }, {
       get: (_, key) => validateProp(key),
-      set: (vd, key, val) => vd(key, val)
+      set: (validate, key, val) => validate(key, val)
     })
 
     const computed = new Map()
     const compute = new Proxy(function (key, computation) {
+      key = antiSemiotics(key)
       if (isFunc(computation)) computed.set(key, computation)
       else if (isStr(computation)) {
         if (allare(arguments, isStr)) {
@@ -345,4 +358,6 @@
     return Model
   }
   SuperModel.emitter = emitter
+
+  isFunc(root.define) && root.define.amd ? root.define([], () => SuperModel) : typeof module === 'object' && module.exports ? module.exports = SuperModel : root.SuperModel = SuperModel
 }
