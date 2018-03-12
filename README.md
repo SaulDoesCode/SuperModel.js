@@ -8,7 +8,7 @@
 * -: only works in environments supporting Proxy
 
 ### API
-* ``SuperModel( data = {}, store = new Map() )`` - create a new model
+* ``SuperModel( data = {}, emitter = SuperModel.emitter(), store = new Map() )`` - create a new model
 * ``.on(type, func)``, ``.once(type, func)``- model event listener
 * ``.on[type](func)``, ``.once[type](func)``- event listener, type as function property
 * ``.emit(type, ...values)``- emit an event with values
