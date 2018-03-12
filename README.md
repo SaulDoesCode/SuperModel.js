@@ -184,25 +184,12 @@ sync model values with other objects
   if (nolongerToday) {
     // this will update the element's text
     model.PhilosophyOfTheDay = 'nominalism'
+  } else if (fedUpWithPositivism) {
+    model.PhilosophyOfTheDay = 'critical-realism'
   }
 
   // stop syncing
   model.sync.stop(PHODelement, 'textContent')
-```
-
-``.listen(justonce, evtType, fn)``   
-for ease of use in special cases
-```js
-  const model = SuperModel()
-
-  model.listen(
-    'nihilism',
-    val => console.log(val),
-    true // once = true, on = false
-  )
-
-  model.emit.nihilism('nothing has meaning') // logs
-  model.emit.nihilism('nothing has meaning') // doesn't log
 ```
 
 ``.emitAsync`` is the same as ``.emit``   
