@@ -1,11 +1,8 @@
 {
-  "name": "supermodel",
-  "version": "1.1.0",
+  "name": "super-model-js",
+  "version": "1.0.0",
   "description": "Manage your app's state like never before, harness the power of the proxy!",
   "main": "SuperModel.js",
-  "directories": {
-    "example": "example"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node build.js"
@@ -17,6 +14,10 @@
   "keywords": [
     "model",
     "data-binding",
+    "observer",
+    "emitter",
+    "pub-sub",
+    "proxy",
     "event",
     "mvc"
   ],
