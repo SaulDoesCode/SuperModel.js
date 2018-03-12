@@ -175,7 +175,6 @@
       } else if (has(prop)) {
         obj[key] = mut(prop)
       }
-      console.log(prop, mut(prop), obj, key)
 
       once('delete:' + prop, () => {
         stop && stop()
