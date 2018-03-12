@@ -4,8 +4,10 @@
 [![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
 
 * +: no depencies
-* +: small size, SuperModel.min.js is ~4kb uncompressed
+* +: small size, SuperModel.min.js is ~4.5kb uncompressed
 * -: only works in environments supporting Proxy
+
+you can install from npm: ``npm install --save super-model-js``
 
 ### API
 * ``SuperModel( data = {}, emitter = SuperModel.emitter(), store = new Map() )`` - create a new model
