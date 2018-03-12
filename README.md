@@ -112,18 +112,13 @@ more or less node.js style events
   model.emit('myevent', 'newer', 'values')
 ```
 
-stop and restart event listeners
+stop event listeners
 
 ```js
   const model = SuperModel()
 
-  const listener = model.on.happening(() => {})
-  listener.off() // no longer listening
-  listener.on() // listening again
-  listener.once() // listening just once
-
-  // bonus, trigger the listener manually
-  listener()
+  const off = model.on.happening(() => {})
+  off() // no longer happening
 ```
 
 #### Mutations
