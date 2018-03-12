@@ -1,6 +1,6 @@
 {
   "name": "super-model-js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Manage your app's state like never before, harness the power of the proxy!",
   "main": "SuperModel.js",
   "scripts": {
