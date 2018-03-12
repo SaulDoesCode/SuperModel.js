@@ -51,20 +51,17 @@
   <body>
     <h1>SuperModel.js Data Binding</h1>
     <main>
-      <textarea id=txtarea>type something...</textarea>
-      <article id=txtdisplay></article>
+      <textarea id=input>type something...</textarea>
+      <article id=output></article>
     </main>
 
     <script type="text/javascript">
-      const model = SuperModel()
-      const txtarea = document.querySelector('#txtarea')
-      const txtdisplay = document.querySelector('#txtdisplay')
-      model.sync(txtdisplay, 'innerText', 'txt')
+      const input = document.querySelector('#txtarea')
+      const output = document.querySelector('#txtdisplay')
 
-      model.txt = txtarea.value.trim()
-      txtarea.addEventListener('input', e => {
-        model.txt = txtarea.value.trim()
-      })
+      const model = SuperModel()
+      model.sync.msg(input)
+      model.sync.msg(output, 'innerText')
     </script>
     <br>
     <aside>
@@ -73,15 +70,12 @@
   // 1 - textarea id="txtarea"
   // 2 - article  id="txtdisplay"
 
-  const model = SuperModel()
-  const txtarea = document.querySelector('#txtarea')
-  const txtdisplay = document.querySelector('#txtdisplay')
-  model.sync(txtdisplay, 'innerText', 'txt')
+  const input = document.querySelector('#input')
+  const output = document.querySelector('#output')
 
-  model.txt = txtarea.value.trim()
-  txtarea.addEventListener('input', e => {
-    model.txt = txtarea.value.trim()
-  })
+  const model = SuperModel()
+  model.sync.msg(input)
+  model.sync.msg(output, 'innerText')
 </code></pre>
 
     </aside>

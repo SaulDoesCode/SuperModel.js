@@ -26,9 +26,9 @@
 * ``.sync.stop(obj, key)``- stop syncing a model property on an object
 * ``.store()``- Map containing all model properties
 * ``.toJSON()`` - Get all model.store properties as JSON
+* ``.toJSONArray()`` - Get all model.store properties as "[[key, val], ...]"
 * ``.has(key)``- checks whether model.store has a certain key
 * ``.runAsync(func, ...args)``- runs a function (with its args) inside a promise
-* ``.listMap()``- internal abstraction using a Map containing Sets
 * ``.emitter()``- just the event emitting part of the model
 
 ### Learn By Example
@@ -56,15 +56,12 @@
 ```
 
 ```js
-  const model = SuperModel()
-  const txtarea = document.querySelector('#txtarea')
-  const txtdisplay = document.querySelector('#txtdisplay')
-  model.sync(txtdisplay, 'innerText', 'txt')
+const input = document.querySelector('#txtarea')
+const output = document.querySelector('#txtdisplay')
 
-  model.txt = txtarea.value.trim()
-  txtarea.addEventListener('input', e => {
-    model.txt = txtarea.value.trim()
-  })
+const model = SuperModel()
+model.sync.msg(input)
+model.sync.msg(output, 'innerText')
 ```
 
 #### Validate Properties
@@ -214,33 +211,4 @@ and each event listener in a ``setTimeout(ln, 0)``
 ```js
   const model = SuperModel()
   model.emitAsync('evtType', ...['values'])
-```
-
-
-**listMap** is just a utility to manage a ``Map`` that contains ``Set``s
-```javascript
-  const lm = SuperModel.listMap()
-
-  // set
-  lm('key', 'value0')
-  lm('key', 'value1')
-  // get
-  lm('key') // -> Set['value0', 'value1']
-  // get the base map
-  lm.map // -> Map{key: Set[...]}
-  // has
-  lm.has('key') // -> true
-  lm.has('key', 'value2') // -> false
-  // delete a value
-  lm.del('key', 'value0')
-  // or
-  lm('key').delete('value0')
-
-  // loop over contents
-  lm.each('key', value => {
-    console.log(value)
-  })
-  // value0
-  // value1
-  // ...
 ```
