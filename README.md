@@ -4,8 +4,8 @@
 [![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
 
 * +: no depencies
-* +: small size, SuperModel.min.js is less than 3kb uncompressed
-* -: only newer browsers supported
+* +: small size, SuperModel.min.js is ~4kb uncompressed
+* -: only works in environments supporting Proxy
 
 ### API
 * ``SuperModel( data = {}, store = new Map() )`` - create a new model
