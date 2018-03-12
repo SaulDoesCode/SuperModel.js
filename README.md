@@ -9,7 +9,6 @@
 
 ### API
 * ``SuperModel( data = {}, store = new Map() )`` - create a new model
-* ``.listen(type, func, justonce)``- event listener with option to listen once or not
 * ``.on(type, func)``, ``.once(type, func)``- model event listener
 * ``.on[type](func)``, ``.once[type](func)``- event listener, type as function property
 * ``.emit(type, ...values)``- emit an event with values
@@ -28,7 +27,6 @@
 * ``.toJSON()`` - Get all model.store properties as JSON
 * ``.toJSONArray()`` - Get all model.store properties as "[[key, val], ...]"
 * ``.has(key)``- checks whether model.store has a certain key
-* ``.runAsync(func, ...args)``- runs a function (with its args) inside a promise
 * ``.emitter()``- just the event emitting part of the model
 
 ### Learn By Example
